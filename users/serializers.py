@@ -24,9 +24,22 @@ from .exceptions import (
 )
 from .utils import validate_age
 
-from .models import UserLoginHistory, AccountDeletionRequest, ProfileDataDeletionRequest
+from .models import UserLoginHistory, AccountDeletionRequest, ProfileDataDeletionRequest, HealthData, Workout
 
 User = get_user_model()
+
+
+class HealthDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HealthData
+        fields = ['heart_rate', 'step_count', 'calories_burned', 'battery_level', 'recorded_at']
+        read_only_fields = ['recorded_at']
+
+class WorkoutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Workout
+        fields = ['id', 'workout_type', 'duration_minutes', 'calories_burned', 'completed_at']
+        read_only_fields = ['completed_at']
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
