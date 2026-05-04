@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from .managers import UserManager
 import uuid
 from django.contrib.auth.hashers import make_password, check_password
+from .health_models import HealthData, Workout
 
 
 class User(AbstractBaseUser, PermissionsMixin):
