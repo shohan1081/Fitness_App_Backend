@@ -30,8 +30,6 @@ from .serializers import (
     UserProfileUpdateSerializer,
     AccountDeleteSerializer,
     UserFitnessInfoSerializer,
-    HealthDataSerializer,
-    WorkoutSerializer,
     SupportTicketSerializer,
     PublicUserProfileSerializer,
 )
@@ -364,61 +362,3 @@ class UserFitnessInfoUpdateView(APIView):
             errors=serializer.errors, 
             status_code=status.HTTP_400_BAD_REQUEST
         )
-
-class HealthDataUpdateView(APIView):
-    """
-    API for Flutter to sync health data (heart rate, steps, battery, etc.)
-    """
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
-    serializer_class = HealthDataSerializer
-
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return standard_response(success=True, message="Health data synced", data=serializer.data)
-        return standard_response(success=False, errors=serializer.errors, status_code=status.HTTP_400_BAD_REQUEST)
-
-class UserDashboardView(APIView):
-    """
-    Dashboard API providing consolidated health and fitness metrics.
-    """
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
-
-    def get(self, request):
-        user = request.user
-        
-        # Latest health metrics
-        latest_health = HealthData.objects.filter(user=user).first()
-        
-        # Calculate BMI
-        bmi = None
-        if user.height and user.current_weight:
-            height_m = float(user.height) / 100.0 if user.height_unit == 'cm' else float(user.height) * 0.3048
-            bmi = round(float(user.current_weight) / (height_m ** 2), 2)
-        
-        # Weight difference
-        weight_diff = None
-        if user.current_weight and user.goal_weight:
-            weight_diff = round(float(user.goal_weight) - float(user.current_weight), 2)
-            
-        # Recent Workouts
-        recent_workouts = Workout.objects.filter(user=user)[:5]
-        workout_serializer = WorkoutSerializer(recent_workouts, many=True)
-
-        dashboard_data = {
-            'user_name': f"{user.first_name} {user.last_name}".strip() or user.email,
-            'heart_rate': latest_health.heart_rate if latest_health else None,
-            'step_count': latest_health.step_count if latest_health else 0,
-            'calories_today': latest_health.calories_burned if latest_health else 0,
-            'battery_level': latest_health.battery_level if latest_health else None,
-            'current_bmi': bmi,
-            'current_weight': user.current_weight,
-            'goal_weight': user.goal_weight,
-            'weight_difference': weight_diff,
-            'recent_workouts': workout_serializer.data
-        }
-
-        return standard_response(success=True, message="Dashboard data retrieved", data=dashboard_data)

@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 class HealthData(models.Model):
     user = models.ForeignKey(
@@ -39,3 +40,23 @@ class Workout(models.Model):
 
     class Meta:
         ordering = ['-completed_at']
+
+
+class WeightLog(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='weight_logs'
+    )
+    weight = models.DecimalField(_('weight'), max_digits=5, decimal_places=2)
+    date = models.DateField(_('date'), default=timezone.now)
+    notes = models.TextField(_('notes'), blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('weight log')
+        verbose_name_plural = _('weight logs')
+        ordering = ['-date', '-created_at']
+
+    def __str__(self):
+        return f"{self.user.email} - {self.weight}kg on {self.date}"

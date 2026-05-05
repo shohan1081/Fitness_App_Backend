@@ -22,8 +22,6 @@ from .views import (
     SupportTicketView,
     OtherUserProfileView,
     UserFitnessInfoUpdateView,
-    UserDashboardView,
-    HealthDataUpdateView,
 )
 
 app_name = 'users'
@@ -53,8 +51,6 @@ urlpatterns = [
     path('account-delete/', AccountDeleteView.as_view(), name='account-delete'),
     path('support-ticket/', SupportTicketView.as_view(), name='support-ticket'),
     path('fitness-info/', UserFitnessInfoUpdateView.as_view(), name='fitness-info'),
-    path('dashboard/', UserDashboardView.as_view(), name='dashboard'),
-    path('health-sync/', HealthDataUpdateView.as_view(), name='health-sync'),
     path('profile/<uuid:pk>/', OtherUserProfileView.as_view(), name='other-user-profile'),
 
     # Account Deletion
