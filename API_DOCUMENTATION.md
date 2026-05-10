@@ -20,8 +20,7 @@ This document lists the available API endpoints for the Live More App, designed 
         "email": "user@example.com",
         "password": "Password123!",
         "confirm_password": "Password123!",
-        "first_name": "John",
-        "last_name": "Doe"
+        "full_name": "John Doe"
     }
     ```
 *   **Response (201 Created):**
@@ -138,7 +137,7 @@ This document lists the available API endpoints for the Live More App, designed 
 *   **Request Body (Partial):**
     ```json
     {
-        "first_name": "Johnny",
+        "full_name": "Johnny Doe",
         "gender": "male",
         "date_of_birth": "1995-05-15"
     }
@@ -152,6 +151,7 @@ This document lists the available API endpoints for the Live More App, designed 
     ```json
     {
         "age": 25,
+        "gender": "male",
         "goal": "lose_weight",
         "height": 180,
         "height_unit": "cm",
@@ -216,7 +216,7 @@ This document lists the available API endpoints for the Live More App, designed 
     }
     ```
 
-### **Sync Health Data (Health API)**
+### Sync Health Data (Health API)
 *   **Method:** `POST`
 *   **URL:** `/api/health/sync/`
 *   **Auth:** `Bearer <Access Token>`
@@ -230,7 +230,25 @@ This document lists the available API endpoints for the Live More App, designed 
     }
     ```
 
-### **Get Other User Profile (Users API)**
+### Calorie Burn History (Health API)
+*   **Method:** `GET`
+*   **URL:** `/api/health/calories-history/`
+*   **Auth:** `Bearer <Access Token>`
+*   **Query Parameters:** `period` (options: `day`, `week`, `month`, `year`. Default is `day`).
+*   **Response (200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "",
+        "data": [
+            { "label": "08:00", "calories": 45.2 },
+            { "label": "09:00", "calories": 120.5 }
+        ]
+    }
+    ```
+
+### Get Other User Profile (Users API)
+
 *   **Method:** `GET`
 *   **URL:** `/api/users/profile/<uuid:user_id>/`
 *   **Auth:** `Bearer <Access Token>`

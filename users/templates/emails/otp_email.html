@@ -1,14 +1,317 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Your OTP Code</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your OTP Code – Live More</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #f4f6f3;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #1a1a1a;
+            padding: 40px 16px;
+        }
+
+        .wrapper {
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            background-color: #1a1a1a;
+            border-radius: 16px;
+            margin-bottom: 12px;
+        }
+
+        .logo-wrap svg {
+            width: 38px;
+            height: 38px;
+        }
+
+        .brand-name {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: #4a7c59;
+            text-transform: uppercase;
+        }
+
+        /* Card */
+        .card {
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #e2e8e0;
+        }
+
+        /* Green top bar */
+        .card-top-bar {
+            background: #2d6a4f;
+            height: 6px;
+        }
+
+        .card-body {
+            padding: 36px 40px 32px;
+        }
+
+        .greeting {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: #5a6a5e;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        /* OTP Box */
+        .otp-section {
+            background: #f0f7f3;
+            border: 1.5px dashed #81c99e;
+            border-radius: 14px;
+            padding: 28px 24px;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .otp-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #4a7c59;
+            margin-bottom: 12px;
+        }
+
+        .otp-code {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            color: #1a3d2b;
+            font-family: 'Courier New', Courier, monospace;
+            margin-bottom: 12px;
+        }
+
+        .otp-expiry {
+            font-size: 12px;
+            color: #6b8a74;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .otp-expiry svg {
+            width: 13px;
+            height: 13px;
+            stroke: #6b8a74;
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .stat-chip {
+            flex: 1;
+            background: #f0f7f3;
+            border-radius: 10px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+
+        .stat-chip .stat-icon {
+            font-size: 18px;
+            margin-bottom: 3px;
+            display: block;
+            color: #2d6a4f;
+        }
+
+        .stat-chip .stat-label {
+            font-size: 10px;
+            color: #6b8a74;
+            font-weight: 500;
+        }
+
+        /* Warning box */
+        .warning-box {
+            background: #fff8f0;
+            border-left: 3px solid #e8a838;
+            border-radius: 0 8px 8px 0;
+            padding: 12px 16px;
+            margin-bottom: 28px;
+        }
+
+        .warning-box p {
+            font-size: 13px;
+            color: #7a5a1e;
+            line-height: 1.5;
+        }
+
+        .warning-box strong {
+            font-weight: 600;
+        }
+
+        /* Divider */
+        .divider {
+            border: none;
+            border-top: 1px solid #e8eeea;
+            margin: 0 0 24px;
+        }
+
+        /* Sign off */
+        .sign-off {
+            font-size: 15px;
+            color: #3a4a3e;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .team-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #1a1a1a;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 20px;
+            letter-spacing: 0.04em;
+        }
+
+        .team-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: #52c27b;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            padding: 0 8px;
+        }
+
+        .footer p {
+            font-size: 12px;
+            color: #8a9e90;
+            line-height: 1.7;
+        }
+
+        .footer a {
+            color: #4a7c59;
+            text-decoration: none;
+        }
+
+        .footer-links {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .footer-links a {
+            font-size: 11px;
+            color: #8a9e90;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-    <p>Hi {{ user.first_name }},</p>
-    <p>Your One-Time Password (OTP) for Live More is:</p>
-    <h2>{{ otp }}</h2>
-    <p>This code will expire in 10 minutes.</p>
-    <p>If you did not request this, please ignore this email.</p>
-    <p>Thanks,<br>The Live More Team</p>
+    <div class="wrapper">
+
+        <!-- Logo / Header -->
+        <div class="header">
+            <div class="logo-wrap">
+                <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- LMR stylised heartbeat logo to match app icon -->
+                    <polyline points="4,19 10,19 13,10 16,28 19,14 22,22 25,19 34,19"
+                        stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                </svg>
+            </div>
+            <div class="brand-name">Live · More</div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card">
+            <div class="card-top-bar"></div>
+            <div class="card-body">
+
+                <p class="greeting">Hi {{ user.full_name }},</p>
+                <p class="subtitle">
+                    Use the code below to verify your identity and continue with Live More.
+                </p>
+
+                <!-- OTP Box -->
+                <div class="otp-section">
+                    <div class="otp-label">Your one-time password</div>
+                    <div class="otp-code">{{ otp }}</div>
+                    <div class="otp-expiry">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        Expires in 10 minutes
+                    </div>
+                </div>
+
+                <!-- Warning -->
+                <div class="warning-box">
+                    <p><strong>Didn't request this?</strong> If you didn't ask for this code, you can safely ignore this email. Someone may have typed your address by mistake.</p>
+                </div>
+
+                <hr class="divider">
+
+                <!-- Sign off -->
+                <p class="sign-off">
+                    Keep moving, keep thriving.<br>
+                    — The Live More Team
+                </p>
+
+                <div>
+                    <span class="team-badge">
+                        <span class="dot"></span>
+                        Live More
+                    </span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                This email was sent to you because an OTP was requested for your Live More account.<br>
+                Track weight, workouts &amp; progress — beautifully, every day.
+            </p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Unsubscribe</a>
+            </div>
+        </div>
+
+    </div>
 </body>
 </html>

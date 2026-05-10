@@ -277,7 +277,7 @@ class VerifyProfileDataDeletionView(APIView):
             req = ProfileDataDeletionRequest.objects.get(verification_token=token, status='pending')
             if req.user:
                 u = req.user
-                u.first_name, u.last_name = "User", ""
+                u.full_name = "User"
                 u.save()
             req.status = 'completed'; req.save()
             return render(request, 'users/delete_profile_data_confirmed.html')

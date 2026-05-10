@@ -1,0 +1,29 @@
+hi shovon, sorry for this being late but we should've mentioned how the app should be able to estimate the total calories burnt. ive broken is down below so hopefully it makes sense. For the proof-of-concept app, we’d like calories to be calculated within the app rather than on the pod.
+The pod will provide the following data via BLE:
+Heart rate (BPM)
+Step count
+Movement/activity level
+Workout duration (if applicable)
+The app should estimate calories burned using user profile data collected during onboarding:
+Age
+Sex
+Height (cm)
+Weight (kg)
+Please implement a standard calorie estimation approach using BMR + activity.
+First, calculate BMR using the Mifflin-St Jeor Equation:
+Male:
+BMR = (10 × weight in kg) + (6.25 × height in cm) − (5 × age) + 5
+Female:
+BMR = (10 × weight in kg) + (6.25 × height in cm) − (5 × age) − 161
+Then calculate active calories using MET-based estimation:
+Calories burned per minute = (MET × 3.5 × weight in kg) / 200
+Use estimated MET values based on activity:
+Light activity (walking): MET ≈ 3.0
+Moderate activity: MET ≈ 5.0
+Intense activity: MET ≈ 7.0+
+Activity intensity can be inferred from heart rate zones (relative to estimated max HR = 220 − age) and/or step cadence.
+Total calories = (BMR / 1440 × active minutes) + active calories burned
+Requirements:
+Calories should update in real time during workouts
+Data should be stored and displayed across daily, weekly, monthly, and yearly views
+Accuracy does not need to be perfect for this stage, but should be consistent and responsive. hopefully this makes sense but if you have any questions please let me know.

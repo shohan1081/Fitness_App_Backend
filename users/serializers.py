@@ -50,7 +50,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['email', 'password', 'confirm_password', 'first_name', 'last_name']
+        fields = ['email', 'password', 'confirm_password', 'full_name']
     
     def validate_email(self, value):
         """Validate email format and check if it already exists"""
@@ -266,8 +266,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'id',
             'author_id',
             'email',
-            'first_name',
-            'last_name',
+            'full_name',
             'date_of_birth',
             'gender',
             'age',
@@ -307,14 +306,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         
         return representation
 
-    def validate_first_name(self, value):
-        try:
-            validate_name(value)
-            return value
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(str(e))
-
-    def validate_last_name(self, value):
+    def validate_full_name(self, value):
         try:
             validate_name(value)
             return value
@@ -346,16 +338,9 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'date_of_birth', 'gender', 'profile_picture', 'cover_photo']
+        fields = ['full_name', 'date_of_birth', 'gender', 'profile_picture', 'cover_photo']
     
-    def validate_first_name(self, value):
-        try:
-            validate_name(value)
-            return value
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(str(e))
-    
-    def validate_last_name(self, value):
+    def validate_full_name(self, value):
         try:
             validate_name(value)
             return value
@@ -440,14 +425,9 @@ class PublicUserProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for viewing another user's public profile
     """
-    full_name = serializers.SerializerMethodField()
-
     class Meta:
         model = User
         fields = [
-            'id', 'full_name', 'first_name', 'last_name', 
+            'id', 'full_name', 
             'profile_picture', 'cover_photo'
         ]
-
-    def get_full_name(self, obj):
-        return f"{obj.first_name} {obj.last_name}".strip()

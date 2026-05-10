@@ -31,8 +31,7 @@ class UserAdmin(BaseUserAdmin):
     # Display fields in list view
     list_display = [
         'email',
-        'first_name',
-        'last_name',
+        'full_name',
         'is_email_verified',
         'is_active',
         'is_staff',
@@ -51,7 +50,7 @@ class UserAdmin(BaseUserAdmin):
     ]
     
     # Search fields
-    search_fields = ['email', 'first_name', 'last_name']
+    search_fields = ['email', 'full_name']
     
     # Ordering
     ordering = ['-date_joined']
@@ -62,7 +61,7 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('email', 'password')
         }),
         (_('Personal Info'), {
-            'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'profile_picture', 'cover_photo')
+            'fields': ('full_name', 'date_of_birth', 'gender', 'profile_picture', 'cover_photo')
         }),
         (_('Permissions'), {
             'fields': (
@@ -91,8 +90,7 @@ class UserAdmin(BaseUserAdmin):
             'classes': ('wide',),
             'fields': (
                 'email',
-                'first_name',
-                'last_name',
+                'full_name',
                 'date_of_birth',
                 'gender',
                 'password',
@@ -157,8 +155,7 @@ class UserLoginHistoryAdmin(admin.ModelAdmin):
     # Search fields
     search_fields = [
         'user__email',
-        'user__first_name',
-        'user__last_name',
+        'user__full_name',
         'ip_address',
     ]
     

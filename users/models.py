@@ -30,8 +30,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_("User's email address (used for login)")
     )
     
-    first_name = models.CharField(_('first name'), max_length=150, blank=True)
-    last_name = models.CharField(_('last name'), max_length=150, blank=True)
+    full_name = models.CharField(_('full name'), max_length=255, blank=True)
     
     date_of_birth = models.DateField(
         _('date of birth'),
@@ -219,11 +218,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     def get_full_name(self):
         """Return user's full name"""
-        return f"{self.first_name} {self.last_name}".strip()
+        return self.full_name.strip()
     
     def get_short_name(self):
-        """Return user's first name"""
-        return self.first_name
+        """Return user's first name (first part of full name)"""
+        return self.full_name.split(' ')[0] if self.full_name else ""
 
     def is_otp_valid(self, expiry_minutes=10):
         """

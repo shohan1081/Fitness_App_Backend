@@ -4,9 +4,12 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
+from django.db.models import Sum
+from django.db.models.functions import TruncHour, TruncDay, TruncMonth
 
 from .models import HealthData, Workout, WeightLog
 from .serializers import HealthDataSerializer, WorkoutSerializer, WeightLogSerializer
+from .utils import calculate_calories_for_period
 
 def standard_response(success=True, message="", data=None, errors=None, status_code=status.HTTP_200_OK):
     """
@@ -31,9 +34,53 @@ class HealthDataUpdateView(APIView):
     serializer_class = HealthDataSerializer
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+        user = request.user
+        data = request.data.copy()
+        
+        # Get heart rate and steps from request
+        heart_rate = data.get('heart_rate')
+        if heart_rate is not None:
+            try:
+                heart_rate = int(heart_rate)
+            except (ValueError, TypeError):
+                heart_rate = None
+        
+        current_steps = int(data.get('step_count', 0))
+        
+        # Find last sync to calculate duration and steps in period
+        last_sync = HealthData.objects.filter(user=user).order_by('-recorded_at').first()
+        
+        if last_sync:
+            # Time difference in minutes
+            time_diff = (timezone.now() - last_sync.recorded_at).total_seconds() / 60
+            
+            # If it's a new day, or steps were reset, steps_in_period is just current_steps
+            # Otherwise it's the difference
+            if last_sync.recorded_at.date() < timezone.now().date():
+                steps_in_period = current_steps
+            else:
+                steps_in_period = max(0, current_steps - last_sync.step_count)
+            
+            duration_minutes = time_diff
+        else:
+            # First sync ever or for a long time - assume small default duration or just active
+            duration_minutes = 5
+            steps_in_period = current_steps
+
+        # Calculate calories
+        calories = calculate_calories_for_period(
+            user, 
+            heart_rate, 
+            steps_in_period, 
+            duration_minutes
+        )
+        
+        # Override or set calories_burned in the data
+        data['calories_burned'] = float(calories)
+
+        serializer = self.serializer_class(data=data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            serializer.save(user=user)
             return standard_response(success=True, message="Health data synced", data=serializer.data)
         return standard_response(success=False, errors=serializer.errors, status_code=status.HTTP_400_BAD_REQUEST)
 
@@ -66,7 +113,7 @@ class UserDashboardView(APIView):
         workout_serializer = WorkoutSerializer(recent_workouts, many=True)
 
         dashboard_data = {
-            'user_name': f"{user.first_name} {user.last_name}".strip() or user.email,
+            'user_name': user.full_name or user.email,
             'heart_rate': latest_health.heart_rate if latest_health else None,
             'step_count': latest_health.step_count if latest_health else 0,
             'calories_today': latest_health.calories_burned if latest_health else 0,
@@ -174,3 +221,65 @@ class WeightLogUpdateView(APIView):
         logs = WeightLog.objects.filter(user=request.user)
         serializer = self.serializer_class(logs, many=True)
         return standard_response(success=True, data=serializer.data)
+
+class CalorieHistoryView(APIView):
+    """
+    API to retrieve aggregated calorie burn history for progress bars.
+    Supports period=day, week, month, year.
+    """
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+        period = request.query_params.get('period', 'day')
+        user = request.user
+        
+        # Base queryset
+        queryset = HealthData.objects.filter(user=user)
+        
+        if period == 'day':
+            # Hourly record for today
+            queryset = queryset.filter(recorded_at__date=timezone.now().date()) \
+                               .annotate(time_label=TruncHour('recorded_at'))
+        elif period == 'week':
+            # Daily record for last 7 days
+            start_date = timezone.now().date() - timezone.timedelta(days=7)
+            queryset = queryset.filter(recorded_at__date__gte=start_date) \
+                               .annotate(time_label=TruncDay('recorded_at'))
+        elif period == 'month':
+            # Daily record for current month
+            queryset = queryset.filter(recorded_at__month=timezone.now().month, 
+                                       recorded_at__year=timezone.now().year) \
+                               .annotate(time_label=TruncDay('recorded_at'))
+        elif period == 'year':
+            # Monthly record for current year
+            queryset = queryset.filter(recorded_at__year=timezone.now().year) \
+                               .annotate(time_label=TruncMonth('recorded_at'))
+        else:
+            return standard_response(success=False, message="Invalid period", status_code=status.HTTP_400_BAD_REQUEST)
+        
+        # Group and Sum
+        history_data = queryset.values('time_label') \
+                               .annotate(total_calories=Sum('calories_burned')) \
+                               .order_by('time_label')
+        
+        # Format labels for Flutter charts
+        formatted_data = []
+        for item in history_data:
+            if not item['time_label']:
+                continue
+                
+            label = ""
+            if period == 'day':
+                label = item['time_label'].strftime('%H:00')
+            elif period in ['week', 'month']:
+                label = item['time_label'].strftime('%Y-%m-%d')
+            elif period == 'year':
+                label = item['time_label'].strftime('%Y-%m')
+                
+            formatted_data.append({
+                'label': label,
+                'calories': round(float(item['total_calories']), 2)
+            })
+            
+        return standard_response(success=True, data=formatted_data)

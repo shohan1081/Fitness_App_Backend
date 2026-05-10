@@ -74,8 +74,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('is_email_verified', True)  # Auto-verify superuser email
-        extra_fields.setdefault('first_name', 'Admin')
-        extra_fields.setdefault('last_name', 'User')
+        extra_fields.setdefault('full_name', 'Admin User')
         
         # Validate flags
         if extra_fields.get('is_staff') is not True:
