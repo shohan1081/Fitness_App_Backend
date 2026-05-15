@@ -225,7 +225,7 @@ This document lists the available API endpoints for the Live More App, designed 
     {
         "heart_rate": 72,
         "step_count": 5000,
-        "calories_burned": 250.5,
+        
         "battery_level": 85
     }
     ```

@@ -270,6 +270,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'date_of_birth',
             'gender',
             'age',
+            'height',
+            'height_unit',
+            'current_weight',
+            'goal_weight',
+            'goal',
             'profile_picture',
             'cover_photo',
             'is_email_verified',
@@ -338,20 +343,11 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = ['full_name', 'date_of_birth', 'gender', 'profile_picture', 'cover_photo']
+        fields = ['full_name', 'profile_picture', 'goal_weight']
     
     def validate_full_name(self, value):
         try:
             validate_name(value)
-            return value
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(str(e))
-    
-    def validate_date_of_birth(self, value):
-        try:
-            validate_date_of_birth(value)
-            if not validate_age(value, min_age=13):
-                raise serializers.ValidationError("You must be at least 13 years old.")
             return value
         except DjangoValidationError as e:
             raise serializers.ValidationError(str(e))
