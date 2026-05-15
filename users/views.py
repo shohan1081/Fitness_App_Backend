@@ -314,7 +314,7 @@ class OtherUserProfileView(APIView):
 
     def get(self, request, pk):
         try:
-            user = User.objects.get(pk=pk)
+            user = User.objects.get(pk=pk, is_email_verified=True)
             serializer = PublicUserProfileSerializer(user, context={'request': request})
             return standard_response(
                 success=True,
