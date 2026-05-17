@@ -9,7 +9,7 @@ from django.db.models.functions import TruncHour, TruncDay, TruncMonth
 
 from .models import HealthData, Workout, WeightLog
 from .serializers import HealthDataSerializer, WorkoutSerializer, WeightLogSerializer
-from .utils import calculate_calories_for_period
+from .utils import calculate_calories_for_period, get_bmi_info
 
 def standard_response(success=True, message="", data=None, errors=None, status_code=status.HTTP_200_OK):
     """
@@ -112,6 +112,9 @@ class UserDashboardView(APIView):
         recent_workouts = Workout.objects.filter(user=user)[:5]
         workout_serializer = WorkoutSerializer(recent_workouts, many=True)
 
+        # Get BMI info
+        bmi_info = get_bmi_info(bmi)
+
         dashboard_data = {
             'user_name': user.full_name or user.email,
             'heart_rate': latest_health.heart_rate if latest_health else None,
@@ -119,6 +122,7 @@ class UserDashboardView(APIView):
             'calories_today': latest_health.calories_burned if latest_health else 0,
             'battery_level': latest_health.battery_level if latest_health else None,
             'current_bmi': bmi,
+            'current_bmi_level': bmi_info['category'] if bmi_info else None,
             'current_weight': user.current_weight,
             'goal_weight': user.goal_weight,
             'weight_difference': weight_diff,
@@ -154,32 +158,9 @@ class UserBMIView(APIView):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
-        # Determine category and message
-        if bmi < 18.5:
-            category, label = "Underweight", "underweight"
-            message = "You are in the underweight range. It's important to consume enough nutrients and consult with a healthcare provider or nutritionist for a healthy weight gain plan."
-        elif 18.5 <= bmi < 25:
-            category, label = "Normal weight", "normal"
-            message = "You are in a healthy range. Maintain your current weight with regular exercise and a balanced diet to stay on track."
-        elif 25 <= bmi < 30:
-            category, label = "Overweight", "overweight"
-            message = "You are in the overweight range. Incorporating more physical activity and focusing on a balanced, calorie-controlled diet can help you reach a healthier weight."
-        else:
-            category, label = "Obesity", "obesity"
-            message = "You are in the obesity range. We recommend consulting with a healthcare professional to develop a safe and effective plan for weight management and overall health."
-
-        bmi_data = {
-            'current_bmi': bmi,
-            'category': category,
-            'label': label,
-            'message': message,
-            'scale': [
-                {'label': 'Underweight', 'range': 'Below 18.5'},
-                {'label': 'Normal weight', 'range': '18.5 - 24.9'},
-                {'label': 'Overweight', 'range': '25.0 - 29.9'},
-                {'label': 'Obesity', 'range': '30.0 or greater'}
-            ]
-        }
+        # Use utility for category and message
+        bmi_data = get_bmi_info(bmi)
+        bmi_data['current_bmi'] = bmi
 
         return standard_response(success=True, message="BMI details retrieved successfully", data=bmi_data)
 

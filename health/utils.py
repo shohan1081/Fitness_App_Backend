@@ -112,3 +112,35 @@ def calculate_calories_for_period(user, heart_rate, step_count, duration_minutes
         total_calories = bmr_portion + active_portion
 
     return total_calories.quantize(Decimal('0.01'))
+
+def get_bmi_info(bmi):
+    """
+    Determine BMI category and message based on the BMI value.
+    """
+    if bmi is None:
+        return None
+
+    if bmi < 18.5:
+        category, label = "Underweight", "underweight"
+        message = "You are in the underweight range. It's important to consume enough nutrients and consult with a healthcare provider or nutritionist for a healthy weight gain plan."
+    elif 18.5 <= bmi < 25:
+        category, label = "Normal weight", "normal"
+        message = "You are in a healthy range. Maintain your current weight with regular exercise and a balanced diet to stay on track."
+    elif 25 <= bmi < 30:
+        category, label = "Overweight", "overweight"
+        message = "You are in the overweight range. Incorporating more physical activity and focusing on a balanced, calorie-controlled diet can help you reach a healthier weight."
+    else:
+        category, label = "Obesity", "obesity"
+        message = "You are in the obesity range. We recommend consulting with a healthcare professional to develop a safe and effective plan for weight management and overall health."
+    
+    return {
+        'category': category,
+        'label': label,
+        'message': message,
+        'scale': [
+            {'label': 'Underweight', 'range': 'Below 18.5'},
+            {'label': 'Normal weight', 'range': '18.5 - 24.9'},
+            {'label': 'Overweight', 'range': '25.0 - 29.9'},
+            {'label': 'Obesity', 'range': '30.0 or greater'}
+        ]
+    }

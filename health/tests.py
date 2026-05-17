@@ -5,7 +5,12 @@ from rest_framework.test import APIClient
 from decimal import Decimal
 from datetime import timedelta
 from health.models import HealthData
-from health.utils import calculate_bmr, estimate_met, calculate_calories_for_period
+from health.utils import (
+    calculate_bmr, 
+    estimate_met, 
+    calculate_calories_for_period,
+    get_bmi_info
+)
 
 User = get_user_model()
 
@@ -110,13 +115,15 @@ class CalorieAPITests(TestCase):
 
     def test_history_endpoint(self):
         # Create some dummy data
-        now = timezone.now()
+        # Use a fixed time in the middle of the day to avoid date boundary issues
+        today = timezone.now().date()
+        base_time = timezone.make_aware(timezone.datetime.combine(today, timezone.datetime.min.time())) + timedelta(hours=12)
         
         h1 = HealthData.objects.create(user=self.user, calories_burned=10.5, heart_rate=70, step_count=100)
-        HealthData.objects.filter(id=h1.id).update(recorded_at=now - timedelta(hours=1))
+        HealthData.objects.filter(id=h1.id).update(recorded_at=base_time)
         
         h2 = HealthData.objects.create(user=self.user, calories_burned=15.0, heart_rate=70, step_count=200)
-        HealthData.objects.filter(id=h2.id).update(recorded_at=now - timedelta(hours=2))
+        HealthData.objects.filter(id=h2.id).update(recorded_at=base_time - timedelta(hours=2))
         
         # Test 'day' period
         response = self.client.get('/api/health/calories-history/', {'period': 'day'})
@@ -127,3 +134,50 @@ class CalorieAPITests(TestCase):
         # Test invalid period
         response = self.client.get('/api/health/calories-history/', {'period': 'invalid'})
         self.assertEqual(response.status_code, 400)
+
+class BMITests(TestCase):
+    def test_get_bmi_info(self):
+        # Underweight
+        info = get_bmi_info(17.0)
+        self.assertEqual(info['category'], "Underweight")
+        
+        # Normal
+        info = get_bmi_info(22.0)
+        self.assertEqual(info['category'], "Normal weight")
+        
+        # Overweight
+        info = get_bmi_info(27.0)
+        self.assertEqual(info['category'], "Overweight")
+        
+        # Obesity
+        info = get_bmi_info(32.0)
+        self.assertEqual(info['category'], "Obesity")
+
+class DashboardBMITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email='bmi@example.com',
+            password='password123',
+            height=180,
+            current_weight=75, # BMI = 75 / (1.8^2) = 75 / 3.24 = 23.15 (Normal)
+            height_unit='cm'
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_dashboard_contains_bmi_level(self):
+        response = self.client.get('/api/health/dashboard/')
+        self.assertEqual(response.status_code, 200)
+        data = response.data['data']
+        self.assertIn('current_bmi', data)
+        self.assertIn('current_bmi_level', data)
+        self.assertEqual(data['current_bmi'], 23.15)
+        self.assertEqual(data['current_bmi_level'], "Normal weight")
+
+    def test_bmi_view_works_with_utility(self):
+        response = self.client.get('/api/health/bmi/')
+        self.assertEqual(response.status_code, 200)
+        data = response.data['data']
+        self.assertEqual(data['category'], "Normal weight")
+        self.assertIn('scale', data)
+        self.assertIn('message', data)
