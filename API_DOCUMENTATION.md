@@ -240,10 +240,117 @@ This document lists the available API endpoints for the Live More App, designed 
     {
         "success": true,
         "message": "",
-        "data": [
-            { "label": "08:00", "calories": 45.2 },
-            { "label": "09:00", "calories": 120.5 }
-        ]
+        "data": {
+            "total_calories": 165.7,
+            "highest_calories": 120.5,
+            "average_calories": 82.85,
+            "recent_workouts": [
+                {
+                    "id": 1,
+                    "workout_type": "running",
+                    "duration_minutes": 30,
+                    "calories_burned": "250.00",
+                    "completed_at": "2026-05-19T10:00:00Z"
+                }
+            ],
+            "chart_data": [
+                { "label": "08:00", "calories": 45.2 },
+                { "label": "09:00", "calories": 120.5 }
+            ]
+        }
+    }
+    ```
+
+### Start Workout Session (Health API)
+*   **Method:** `POST`
+*   **URL:** `/api/health/workout/start/`
+*   **Auth:** `Bearer <Access Token>`
+*   **Request Body:**
+    ```json
+    {
+        "workout_type": "running",
+        "heart_rate": 72,
+        "step_count": 1000
+    }
+    ```
+*   **Response (200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "Running session started",
+        "data": {
+            "id": 5,
+            "workout_type": "running",
+            "is_active": true,
+            "start_time": "2026-05-19T12:00:00Z",
+            "start_steps": 1000,
+            "avg_heart_rate": 72
+        }
+    }
+    ```
+
+### Finish Workout Session (Health API)
+*   **Method:** `POST`
+*   **URL:** `/api/health/workout/finish/`
+*   **Auth:** `Bearer <Access Token>`
+*   **Request Body:**
+    ```json
+    {
+        "workout_id": 5,
+        "heart_rate": 145,
+        "step_count": 5000,
+        "duration_minutes": 35,
+        "date": "2026-05-19T12:30:00Z"
+    }
+    ```
+*   **Note:** `duration_minutes` and `date` are optional. If omitted, they are calculated automatically.
+*   **Response (200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "Workout completed",
+        "data": {
+            "id": 5,
+            "workout_type": "running",
+            "is_active": false,
+            "duration_minutes": 30,
+            "calories_burned": "320.50",
+            "end_steps": 5000,
+            "avg_heart_rate": 108,
+            "completed_at": "2026-05-19T12:30:00Z"
+        }
+    }
+    ```
+
+### Workout Statistics (Health API)
+*   **Method:** `GET`
+*   **URL:** `/api/health/workout/stats/`
+*   **Auth:** `Bearer <Access Token>`
+*   **Response (200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "",
+        "data": {
+            "total_sessions": 5,
+            "total_duration_minutes": 150,
+            "total_calories_burned": 1200.5,
+            "average_duration_minutes": 30.0,
+            "best_day_session_count": 2,
+            "chart_data": [
+                { "label": "2026-05-13", "calories": 250.0 },
+                { "label": "2026-05-14", "calories": 300.5 }
+            ],
+            "history": [
+                {
+                    "id": 10,
+                    "workout_type": "running",
+                    "duration_minutes": 30,
+                    "calories_burned": "250.00",
+                    "completed_at": "2026-05-19T10:00:00Z"
+                }
+            ]
+        }
     }
     ```
 
