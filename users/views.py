@@ -267,6 +267,9 @@ def privacy_policy_view(request):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ProfileDataDeletionAPIView(View):
+    def get(self, request):
+        return render(request, 'users/delete_profile_data_request.html')
+
     def post(self, request):
         email = request.POST.get('email')
         user = User.objects.filter(email=email).first()
@@ -293,6 +296,9 @@ def account_deletion_request_view(request): return render(request, 'users/delete
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AccountDeletionAPIView(View):
+    def get(self, request):
+        return render(request, 'users/delete_account.html')
+
     def post(self, request):
         email = request.POST.get('email')
         user = User.objects.filter(email=email).first()
