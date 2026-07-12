@@ -261,6 +261,9 @@ class CustomTokenVerifyView(TokenVerifyView):
 @csrf_exempt
 def delete_profile_data_request_view(request): return render(request, 'users/delete_profile_data_request.html')
 
+def privacy_policy_view(request):
+    return render(request, 'users/privacy_policy.html')
+
 class ProfileDataDeletionAPIView(APIView):
     def post(self, request):
         email = request.data.get('email')
