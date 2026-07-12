@@ -5,6 +5,7 @@ from .models import User, UserLoginHistory, AccountDeletionRequest, ProfileDataD
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils.html import format_html
+from django.conf import settings
 
 @admin.register(ProfileDataDeletionRequest)
 class ProfileDataDeletionRequestAdmin(admin.ModelAdmin):
@@ -12,6 +13,24 @@ class ProfileDataDeletionRequestAdmin(admin.ModelAdmin):
     list_filter = ('status',)
     search_fields = ('email',)
     readonly_fields = ('email', 'user', 'created_at', 'updated_at', 'verification_token')
+    actions = ['send_deletion_link']
+
+    def send_deletion_link(self, request, queryset):
+        sent_count = 0
+        for req in queryset.filter(status='pending'):
+            link = request.build_absolute_uri(
+                reverse('users:verify_profile_data_deletion', kwargs={'token': str(req.verification_token)})
+            )
+            send_mail(
+                subject='Confirm Profile Deletion - Live More',
+                message=f'Hello,\n\nWe received a request to delete your profile data. Please confirm the deletion by clicking the link below:\n\n{link}\n\nIf you did not request this, please ignore this email.\n\nBest regards,\nLive More Team',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[req.email],
+                fail_silently=False
+            )
+            sent_count += 1
+        self.message_user(request, f'Successfully sent deletion confirmation email to {sent_count} user(s).')
+    send_deletion_link.short_description = 'Send deletion confirmation link to selected requests'
 
 @admin.register(AccountDeletionRequest)
 class AccountDeletionRequestAdmin(admin.ModelAdmin):
@@ -19,6 +38,24 @@ class AccountDeletionRequestAdmin(admin.ModelAdmin):
     list_filter = ('status',)
     search_fields = ('email',)
     readonly_fields = ('email', 'user', 'created_at', 'updated_at', 'verification_token')
+    actions = ['send_deletion_link']
+
+    def send_deletion_link(self, request, queryset):
+        sent_count = 0
+        for req in queryset.filter(status='pending'):
+            link = request.build_absolute_uri(
+                reverse('users:verify_account_deletion', kwargs={'token': str(req.verification_token)})
+            )
+            send_mail(
+                subject='Confirm Account Deletion - Live More',
+                message=f'Hello,\n\nWe received a request to delete your account. Please confirm the deletion by clicking the link below:\n\n{link}\n\nIf you did not request this, please ignore this email.\n\nBest regards,\nLive More Team',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[req.email],
+                fail_silently=False
+            )
+            sent_count += 1
+        self.message_user(request, f'Successfully sent deletion confirmation email to {sent_count} user(s).')
+    send_deletion_link.short_description = 'Send deletion confirmation link to selected requests'
 
 
 
