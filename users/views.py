@@ -265,48 +265,57 @@ def privacy_policy_view(request):
     return render(request, 'users/privacy_policy.html')
 
 class ProfileDataDeletionAPIView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
     def post(self, request):
         email = request.data.get('email')
         user = User.objects.filter(email=email).first()
         if user:
-            req, _ = ProfileDataDeletionRequest.objects.get_or_create(user=user, email=email)
-            link = request.build_absolute_uri(reverse('users:verify_profile_data_deletion', kwargs={'token': str(req.verification_token)}))
-            send_mail('Verify Deletion', f'Link: {link}', 'from@example.com', [email])
-        return render(request, 'users/delete_profile_data_submitted.html')
+            ProfileDataDeletionRequest.objects.get_or_create(user=user, email=email)
+        return render(request, 'users/delete_profile_data_submitted.html', {'email': email})
 
 class VerifyProfileDataDeletionView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
     def get(self, request, token):
         try:
             req = ProfileDataDeletionRequest.objects.get(verification_token=token, status='pending')
-            if req.user:
-                u = req.user
-                u.full_name = "User"
-                u.save()
-            req.status = 'completed'; req.save()
+            user = req.user
+            req.status = 'completed'
+            req.save()
+            if user:
+                user.delete()
             return render(request, 'users/delete_profile_data_confirmed.html')
-        except: return standard_response(success=False, message="Invalid link", status_code=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return standard_response(success=False, message="Invalid link or request expired", status_code=status.HTTP_400_BAD_REQUEST)
 
 @csrf_exempt
 def account_deletion_request_view(request): return render(request, 'users/delete_account.html')
 
 class AccountDeletionAPIView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
     def post(self, request):
         email = request.data.get('email')
         user = User.objects.filter(email=email).first()
         if user:
-            req, _ = AccountDeletionRequest.objects.get_or_create(user=user, email=email)
-            link = request.build_absolute_uri(reverse('users:verify_account_deletion', kwargs={'token': str(req.verification_token)}))
-            send_mail('Verify Deletion', f'Link: {link}', 'from@example.com', [email])
-        return render(request, 'users/deletion_request_submitted.html')
+            AccountDeletionRequest.objects.get_or_create(user=user, email=email)
+        return render(request, 'users/deletion_request_submitted.html', {'email': email})
 
 class VerifyAccountDeletionView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
     def get(self, request, token):
         try:
             req = AccountDeletionRequest.objects.get(verification_token=token, status='pending')
-            if req.user: req.user.delete()
-            req.status = 'completed'; req.save()
+            user = req.user
+            req.status = 'completed'
+            req.save()
+            if user:
+                user.delete()
             return render(request, 'users/deletion_confirmed.html')
-        except: return standard_response(success=False, message="Invalid link", status_code=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return standard_response(success=False, message="Invalid link", status_code=status.HTTP_400_BAD_REQUEST)
 
 class OtherUserProfileView(APIView):
     """
