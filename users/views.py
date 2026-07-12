@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils import timezone
@@ -264,19 +265,16 @@ def delete_profile_data_request_view(request): return render(request, 'users/del
 def privacy_policy_view(request):
     return render(request, 'users/privacy_policy.html')
 
-class ProfileDataDeletionAPIView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+@method_decorator(csrf_exempt, name='dispatch')
+class ProfileDataDeletionAPIView(View):
     def post(self, request):
-        email = request.data.get('email')
+        email = request.POST.get('email')
         user = User.objects.filter(email=email).first()
         if user:
             ProfileDataDeletionRequest.objects.get_or_create(user=user, email=email)
         return render(request, 'users/delete_profile_data_submitted.html', {'email': email})
 
-class VerifyProfileDataDeletionView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+class VerifyProfileDataDeletionView(View):
     def get(self, request, token):
         try:
             req = ProfileDataDeletionRequest.objects.get(verification_token=token, status='pending')
@@ -287,24 +285,22 @@ class VerifyProfileDataDeletionView(APIView):
                 user.delete()
             return render(request, 'users/delete_profile_data_confirmed.html')
         except Exception as e:
-            return standard_response(success=False, message="Invalid link or request expired", status_code=status.HTTP_400_BAD_REQUEST)
+            from django.http import HttpResponseBadRequest
+            return HttpResponseBadRequest("Invalid link or request expired")
 
 @csrf_exempt
 def account_deletion_request_view(request): return render(request, 'users/delete_account.html')
 
-class AccountDeletionAPIView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+@method_decorator(csrf_exempt, name='dispatch')
+class AccountDeletionAPIView(View):
     def post(self, request):
-        email = request.data.get('email')
+        email = request.POST.get('email')
         user = User.objects.filter(email=email).first()
         if user:
             AccountDeletionRequest.objects.get_or_create(user=user, email=email)
         return render(request, 'users/deletion_request_submitted.html', {'email': email})
 
-class VerifyAccountDeletionView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+class VerifyAccountDeletionView(View):
     def get(self, request, token):
         try:
             req = AccountDeletionRequest.objects.get(verification_token=token, status='pending')
@@ -315,7 +311,8 @@ class VerifyAccountDeletionView(APIView):
                 user.delete()
             return render(request, 'users/deletion_confirmed.html')
         except Exception as e:
-            return standard_response(success=False, message="Invalid link", status_code=status.HTTP_400_BAD_REQUEST)
+            from django.http import HttpResponseBadRequest
+            return HttpResponseBadRequest("Invalid link or request expired")
 
 class OtherUserProfileView(APIView):
     """
